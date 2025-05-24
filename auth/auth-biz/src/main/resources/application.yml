@@ -1,0 +1,27 @@
+info:
+  app:
+    name: ${spring.application.name}
+    desc: 授权认证
+    version: v1.0
+
+spring:
+  application:
+    name: auth
+
+server:
+  port: 8083
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    jmx:
+      exposure:
+        include: '*'
+    web:
+      exposure:
+        include: '*'
+
+account.url: http://localhost:8082
+notification.url: http://localhost:8081

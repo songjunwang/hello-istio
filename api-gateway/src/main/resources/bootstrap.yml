@@ -1,0 +1,28 @@
+info:
+  app:
+    name: ${spring.application.name}
+    desc: 服务网关
+server:
+  port: 8080
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    active: dev
+  cloud:
+    gateway:
+      default-filters:
+        - StripPrefix=1
+      routes:
+        - id: auth
+          predicates:
+            - Path=/auth/**
+          uri: http://localhost:8083
+        - id: account
+          predicates:
+            - Path=/account/**
+          uri: http://localhost:8082
+        - id: notification
+          predicates:
+            - Path=/notification/**
+          uri: http://localhost:8081

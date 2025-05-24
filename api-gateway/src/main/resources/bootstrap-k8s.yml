@@ -1,0 +1,19 @@
+# 在 k8s 环境中使用 service 名称访问服务
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - StripPrefix=1
+      routes:
+        - id: auth
+          predicates:
+            - Path=/auth/**
+          uri: http://auth
+        - id: account
+          predicates:
+            - Path=/account/**
+          uri: http://account
+        - id: notification
+          predicates:
+            - Path=/notification/**
+          uri: http://notification
