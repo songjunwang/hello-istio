@@ -1,0 +1,327 @@
+# 给 notification、account、auth、api-gateway 配置 Service
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: notification
+    service: notification
+  name: notification
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: notification
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: account
+    service: account
+  name: account
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: account
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: auth
+    service: auth
+  name: auth
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: auth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: api-gateway
+    service: api-gateway
+  name: api-gateway
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: api-gateway
+---
+
+# 部署 v1 版本的 notification、account、auth、api-gateway 服务
+
+# v1 notification
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification
+  labels:
+    app: notification
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: notification
+      version: v1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: notification
+        version: v1
+    spec:
+      containers:
+        - name: notification
+          image: notification:0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx256M -Xms256M -Dserver.port=8080 -Dinfo.app.version=v1.0"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "512Mi"
+---
+# v1 account
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account
+  labels:
+    app: account
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: account
+      version: v1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: account
+        version: v1
+    spec:
+      containers:
+        - name: account
+          image: account:0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx256M -Xms256M -Dserver.port=8080 -Dinfo.app.version=v1.0 -Dnotification.url=http://notification"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "512Mi"
+---
+# v1 auth
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  labels:
+    app: auth
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: auth
+      version: v1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: auth
+        version: v1
+    spec:
+      containers:
+        - name: auth
+          image: auth:0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx256M -Xms256M -Dserver.port=8080 -Dinfo.app.version=v1.0 -Dnotification.url=http://notification -Daccount.url=http://account"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "512Mi"
+---
+# v1 api-gateway
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  labels:
+    app: api-gateway
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+      version: v1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: v1
+    spec:
+      containers:
+        - name: api-gateway
+          image: api-gateway:0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx256M -Xms256M -Dserver.port=8080 -Dspring.profiles.active=k8s"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "512Mi"
+---
+
+# 部署 1 个 v2 版本的 account 服务
+# v2 account
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-v2
+  labels:
+    app: account
+    version: v2
+spec:
+  selector:
+    matchLabels:
+      app: account
+      version: v2
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: account
+        version: v2
+    spec:
+      containers:
+        - name: account-v2
+          image: account:0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx256M -Xms256M -Dserver.port=8080 -Dinfo.app.version=v2.0 -Dnotification.url=http://notification"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "512Mi"
+---
+
+# 部署 1 个 v2 和 1 个 v3 版本的 notification 服务
+# v2 notification
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-v2
+  labels:
+    app: notification
+    version: v2
+spec:
+  selector:
+    matchLabels:
+      app: notification
+      version: v2
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: notification
+        version: v2
+    spec:
+      containers:
+        - name: notification-v2
+          image: notification:0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx256M -Xms256M -Dserver.port=8080 -Dinfo.app.version=v2.0"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "512Mi"
+---
+# v3 notification
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-v3
+  labels:
+    app: notification
+    version: v3
+spec:
+  selector:
+    matchLabels:
+      app: notification
+      version: v3
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: notification
+        version: v3
+    spec:
+      containers:
+        - name: notification-v3
+          image: notification:0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx256M -Xms256M -Dserver.port=8080 -Dinfo.app.version=v3.0"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "512Mi"
